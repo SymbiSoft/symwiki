@@ -1,0 +1,12 @@
+#summary Project ChangeLog
+
+==== 2008-12-26 ====
+
+  * Initial code: 
+    * based on `xText` simple editor; 
+    * base menu with full set of edit and search functions
+    * right softkey displays ``[[link]]`` name.
+
+==== 2008-12-25 ====
+
+  * The project started (registered in Google Code).
