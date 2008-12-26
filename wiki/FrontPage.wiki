@@ -1,0 +1,17 @@
+#summary Front page of the project
+
+= About =
+
+*!SymWiki* is a personal Wiki application for Symbian S60 devices. It is supports a subset of emacs-wiki syntax.
+
+It is written in Python for S60, so it runs on every platform where Pys60 runs.
+
+= Download & Installation =
+
+The project just started. No distros available. You can get source code, put it to your S60 smartphone and try it there.
+
+= More Info =
+
+ChangeLog
+
+will be soon...
