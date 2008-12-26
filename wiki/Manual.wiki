@@ -1,10 +1,14 @@
 #summary User Manual
 #labels Featured
 
-= Installation =
+= About =
 
+will be soon...
 
 = Usage =
 
+will be soon...
 
 = Wiki-syntax =
+
+will be soon...
