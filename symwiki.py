@@ -33,9 +33,26 @@ VERSION = '0.1'
 class WikiEditor(xText):
     version = VERSION
     title = u('SymWiki %s' % (version))
-    
+    frontpage = 'Home'
     def __init__(self):
+        xText.__init__(self)
         self.history = list()
+        self.wikidir = 'E:/Wiki'
+
+    def openPage(self, name):
+        if self.fname is not None:
+            self.doSave()
+        appuifw2.app.title = u(name)
+        self.fname = os.path.join(self.wikidir, name)
+        if not os.path.exists(self.fname):
+            fn = open(self.fname, 'w')
+            if name != self.frontpage:
+                backlink = '[[%s]]\n' % self.frontpage
+            else:
+                backlink = ''
+            fn.write('%s\n%s' % (name, backlink))
+            fn.close()
+        self.doOpen()
 
     def findLink(self):
         '''Search the [[link]] around cursor
@@ -51,25 +68,31 @@ class WikiEditor(xText):
             return None
         rpos = pos + len(m.group(1))
         txt = self.editor.get(lpos, rpos-lpos)
-        return txt
+        return s(txt)
+        
+    def insertLink(self):
+        link = appuifw2.query(u('Link'), 'text')
+        if link is not None:
+            self.editor.add(u('[[%s]]') % link)
     
     def clickEvent(self):
         txt = self.findLink()
-        if txt is None:
-            appuifw2.note(u("No link found"))
-        else:
-            appuifw2.note(txt)
+        if txt is not None:
+            self.openPage(txt)
 
     def quit(self):
-##        if self.notSaved():
-##            if not self.fileSave(): return
+        self.doSave()
         self.app_lock.signal()
         if appuifw2.app.uid() == UID:
             appuifw2.app.set_exit() # running as app
 
     def run(self):
         self.app_lock = e32.Ao_lock()
+        if not os.path.exists(self.wikidir):
+            os.mkdir(self.wikidir)
+        self.openPage(self.frontpage)
         appuifw2.app.menu = [
+            (u("Insert link"), self.insertLink),
             (u("Edit"), ((u("Undo"), self.undo),
                          (u("Cut"), self.cut),
                          (u("Copy"), self.copy),
@@ -85,7 +108,6 @@ class WikiEditor(xText):
         self.bindExitKey((u('Back'), self.dummy))
         self.bindSelectKey(self.clickEvent)
         self.editor.has_changed = False
-        self.fileNew()
         e32.ao_yield()
         appuifw2.app.body = self.editor
 
@@ -93,9 +115,6 @@ class WikiEditor(xText):
         old_menu_key_text = appuifw2.app.menu_key_text
         appuifw2.app.menu_key_text = u("Options")
         self.rebindFunKeys()
-        # Test
-        self.editor.add(u"[[A]] quick [[brown]] fox [[jumps]] over the lazy [[dog]]")
-
         self.app_lock.wait()
         appuifw2.app.exit_key_text = old_exit_key_text
 

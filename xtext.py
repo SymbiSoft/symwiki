@@ -274,6 +274,9 @@ class xText(object):
         if not ans: return
         self.fname = ans
         appuifw2.app.title = u(os.path.split(self.fname)[1])
+        self.doOpen()
+
+    def doOpen(self):
         try:
             self.editor.set(u(open(self.fname, 'r').read()))
             self.editor.set_pos(0)
