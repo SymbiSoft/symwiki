@@ -1,5 +1,9 @@
 #summary Project ChangeLog
 
+==== 2008-12-27 ====
+
+  * Core Wiki functionality (links) implemented.
+
 ==== 2008-12-26 ====
 
   * Initial code: 
