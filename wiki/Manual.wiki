@@ -3,12 +3,21 @@
 
 = About =
 
-will be soon...
+Welcome to *SymWiki* - your personal Wiki on S60 device!
 
 = Usage =
 
-will be soon...
+Start application using main menu or Python shell. You will see the *Home* page, the main page of your Wiki. Replace its contents with your own.
+
+To insert link to another page press *Options*, select *Insert link* and type the name of the page.
+
+To open a link put the cursor on the link between double brackets and press *Select* button. The current page will be saved automatically and you will get a new page with the name indicated in the link. The page will be created automatically.
+
+Press *Back* button to go to the previous page.
 
 = Wiki-syntax =
 
-will be soon...
+The program implements a subset of emacs-muse markup.
+
+ * `[[page name]]` indicated a hyperlink to the page which name is inside double brackets.
+ * empty line separates paragraphs.
