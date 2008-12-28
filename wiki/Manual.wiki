@@ -17,7 +17,7 @@ Press *Back* button to go to the previous page.
 
 = Wiki-syntax =
 
-The program implements a subset of emacs-muse markup.
+The program implements a subset of [http://www.emacswiki.org/emacs/?action=browse;id=EmacsMuse emacs-muse] markup.
 
  * `[[page name]]` indicated a hyperlink to the page which name is inside double brackets.
  * empty line separates paragraphs.
