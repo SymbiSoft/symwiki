@@ -3,7 +3,7 @@
 
 = About =
 
-Welcome to *SymWiki* - your personal Wiki on S60 device!
+Welcome to *!SymWiki* - your personal Wiki on S60 device!
 
 = Usage =
 
