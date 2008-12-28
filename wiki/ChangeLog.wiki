@@ -1,8 +1,16 @@
 #summary Project ChangeLog
 
+==== 2008-12-28 ====
+
+  * *Version 0.2*:
+    * History and Back buttons;
+    * Create Home page with short help at the first start; 
+    * Home page menu option; 
+    * About box.
+
 ==== 2008-12-27 ====
 
-  * Core Wiki functionality (links) implemented.
+  * Core Wiki functionality (links) implemented (_Version 0.1_).
 
 ==== 2008-12-26 ====
 
