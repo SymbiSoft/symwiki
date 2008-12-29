@@ -99,6 +99,14 @@ To open a link put the cursor on the link between double brackets and press *Sel
         if txt is not None:
             self.openPage(txt)
 
+    def listPages(self):
+        lst = os.listdir(self.wikidir)
+        lst.sort()
+        ans = appuifw2.selection_list(map(u, lst), 1)
+        if ans is None: return
+        fname = lst[ans]
+        self.openPage(fname)
+
     def aboutDlg(self):
         appuifw2.query(u('SymWiki\nVersion %s\n(C) Dmitri Brechalov, 2008' % (self.version)), 'query', ok=u(''), cancel=u('Close'))
 
@@ -115,8 +123,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
         self.goHome()
         appuifw2.app.menu = [
             (u("Insert link"), self.insertLink),
-            (u("Home page"), self.goHome),
-            (u("List all pages"), self.dummy),
+            (u("List all pages"), self.listPages),
             (u("Edit"), ((u("Undo"), self.undo),
                          (u("Cut"), self.cut),
                          (u("Copy"), self.copy),
@@ -129,7 +136,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
             (u("About"), self.aboutDlg),
             (u("Exit"), self.quit)
             ]
-        self.bindExitKey((u('Back'), self.goBack))
+        self.bindExitKey((u('Back'), self.goBack), (u('Home'), self.goHome))
         self.bindSelectKey(self.clickEvent)
         self.editor.has_changed = False
         e32.ao_yield()
