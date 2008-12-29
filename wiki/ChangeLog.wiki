@@ -1,13 +1,19 @@
 #summary Project ChangeLog
 
-==== 2008-12-28 Version 0.2====
+==== 2008-12-29 Version 0.3 ====
+
+  * List of all pages;
+  * History fixed: full path from the page title removed;
+  * Go Home option is now bind to Func + Right Softkey (Func is a Call or Yes button)
+
+==== 2008-12-28 Version 0.2 ====
 
   * History and Back buttons;
   * Create Home page with short help at the first start; 
   * Home page menu option; 
   * About box.
 
-==== 2008-12-27 Version 0.1====
+==== 2008-12-27 Version 0.1 ====
 
   * Core Wiki functionality (links) implemented.
 
