@@ -11,7 +11,9 @@ Start application using main menu or Python shell. You will see the *Home* page,
 
 To insert link to another page select *Options*/*Insert link* and type the name of the page.
 
-To open a link put the cursor on the link between double brackets and press *Select* button. The current page will be saved automatically and you will get a new page with the name indicated in the link. The page will be created automatically.
+To open a link put the cursor on the link between double brackets and press *Select* (action) button. The current page will be saved automatically and you will get a new page with the name indicated in the link. The page will be created automatically.
+
+*Note:* When pressing the select button, ensure that you are not still in the T9 section of the word. Doing so in a Text element causes Python to crash. This is a problem with the Python T9 implementation.
 
 Press *Back* button to go to the previous page.
 
