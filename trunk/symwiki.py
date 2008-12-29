@@ -28,7 +28,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '0.2'
+VERSION = '0.3'
 
 class WikiEditor(xText):
     version = VERSION
@@ -43,7 +43,7 @@ class WikiEditor(xText):
         if self.fname is not None:
             self.doSave()
             if not noHistory:   # do not add to history if going back
-                self.history.append(self.fname)
+                self.history.append(os.path.split(self.fname)[1])
         appuifw2.app.title = u('%s - %s') % (self.title, name)
         self.fname = os.path.join(self.wikidir, name)
         if not os.path.exists(self.fname):
@@ -116,6 +116,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
         appuifw2.app.menu = [
             (u("Insert link"), self.insertLink),
             (u("Home page"), self.goHome),
+            (u("List all pages"), self.dummy),
             (u("Edit"), ((u("Undo"), self.undo),
                          (u("Cut"), self.cut),
                          (u("Copy"), self.copy),
