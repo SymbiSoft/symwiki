@@ -19,6 +19,8 @@ Press `Call + Right Softkey` to open Home page.
 
 Select *Options*/*All pages* to see a list of all your pages. Start typing to find quickly necessary page and press *Ok* to open selected page.
 
+The Wiki pages are saved to `E:\Wiki` directory (created automatically at the first start).
+
 = Wiki-syntax =
 
 The program implements a subset of [http://www.emacswiki.org/emacs/?action=browse;id=EmacsMuse emacs-muse] markup.
