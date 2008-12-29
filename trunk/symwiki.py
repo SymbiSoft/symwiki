@@ -28,7 +28,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '0.3'
+VERSION = '1.0'
 
 class WikiEditor(xText):
     version = VERSION
