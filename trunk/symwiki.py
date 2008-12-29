@@ -123,7 +123,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
         self.goHome()
         appuifw2.app.menu = [
             (u("Insert link"), self.insertLink),
-            (u("List all pages"), self.listPages),
+            (u("All pages"), self.listPages),
             (u("Edit"), ((u("Undo"), self.undo),
                          (u("Cut"), self.cut),
                          (u("Copy"), self.copy),
