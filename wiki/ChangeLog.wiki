@@ -1,7 +1,8 @@
 #summary Project ChangeLog
 
-==== 2008-12-29 Version 0.3 ====
+==== 2008-12-29 Version 1.0 ====
 
+  * *Version 1.0* released.
   * List of all pages;
   * History fixed: full path from the page title removed;
   * Go Home option is now bind to Func + Right Softkey (Func is a Call or Yes button)
