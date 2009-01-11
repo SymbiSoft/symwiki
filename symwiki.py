@@ -28,7 +28,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.0'
+VERSION = '1.0.1'
 
 class WikiEditor(xText):
     version = VERSION
@@ -90,9 +90,16 @@ To open a link put the cursor on the link between double brackets and press *Sel
         return s(txt)
         
     def insertLink(self):
-        link = appuifw2.query(u('Page name'), 'text')
-        if link is not None:
-            self.editor.add(u('[[%s]]') % link)
+        (pos, anchor, text) = self.editor.get_selection()
+        if not text:
+            text = appuifw2.query(u('Page name'), 'text')
+            if text is None: return
+        text = u('[[%s]]') % (text)
+        if pos > anchor:
+            pos, anchor = anchor, pos
+        self.editor.delete(pos, anchor-pos)
+        self.editor.set_pos(pos)
+        self.editor.add(text)
     
     def clickEvent(self):
         txt = self.findLink()

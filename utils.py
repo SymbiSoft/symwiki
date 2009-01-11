@@ -59,4 +59,15 @@ def fileBrowser(label, dironly=False, dirname=''):
         else:
             return fname
 
+def dialog(data):
+    '''construct dialog window based on appuifw2.Form class,
+    execute it and return result: modified data
+    data must be a list of field descriptors: (u'label', 'type'[, value])
+    suitable for the Form constructor.
+    '''
+    form = appuifw2.Form(data, appuifw2.FFormEditModeOnly+appuifw2.FFormDoubleSpaced)
+    form.execute()
+    result = [ form[i] for i in range(len(form)) ]
+    return result
+
 # end of utils.py
