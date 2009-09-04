@@ -28,7 +28,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.0.2'
+VERSION = '1.0.5'
 
 class WikiEditor(xText):
     version = VERSION
@@ -39,11 +39,11 @@ class WikiEditor(xText):
         self.history = list()
         self.wikidir = 'E:/Wiki'
 
-    def openPage(self, name, noHistory=False):
+    def openPage(self, name, pos=0, noHistory=False):
         if self.fname is not None:
             self.doSave()
             if not noHistory:   # do not add to history if going back
-                self.history.append(os.path.split(self.fname)[1])
+                self.history.append((os.path.split(self.fname)[1], self.editor.get_pos()))
         appuifw2.app.title = u('%s - %s') % (self.title, name)
         self.fname = os.path.join(self.wikidir, name)
         if not os.path.exists(self.fname):
@@ -62,11 +62,12 @@ To open a link put the cursor on the link between double brackets and press *Sel
             fn.write(txt)
             fn.close()
         self.doOpen()
+        self.editor.set_pos(pos)
 
     def goBack(self):
         try:
-            name = self.history.pop()
-            self.openPage(name, True)
+            (name, pos) = self.history.pop()
+            self.openPage(name, pos, True)
         except IndexError:
             appuifw2.note(u('No previous page available!'))
 
