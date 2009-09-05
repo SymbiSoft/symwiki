@@ -61,6 +61,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
                 txt = ''
             fn.write(txt)
             fn.close()
+        self.setExitKeyText()
         self.doOpen()
         self.editor.set_pos(pos)
 
@@ -69,10 +70,16 @@ To open a link put the cursor on the link between double brackets and press *Sel
             (name, pos) = self.history.pop()
             self.openPage(name, pos, True)
         except IndexError:
-            appuifw2.note(u('No previous page available!'))
+            self.quit()
 
     def goHome(self):
         self.openPage(self.frontpage)
+
+    def setExitKeyText(self):
+        if len(self.history) == 0:
+            appuifw2.app.exit_key_text = u('Exit')
+        else:
+            appuifw2.app.exit_key_text = u('Back')
         
     def findLink(self):
         '''Search the [[link]] around cursor
@@ -144,7 +151,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
             (u("About"), self.aboutDlg),
             (u("Exit"), self.quit)
             ]
-        self.bindExitKey((u('Back'), self.goBack), (u('Home'), self.goHome))
+        self.bindExitKey((u('Exit'), self.goBack), (u('Home'), self.goHome))
         self.bindSelectKey(self.clickEvent)
         self.editor.has_changed = False
         e32.ao_yield()
