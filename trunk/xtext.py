@@ -202,11 +202,26 @@ class xText(object):
             self.editor.set_selection(pos, pos-len(self.find_text))
         
     def replaceText(self):
+        LIMITY = 50
         ans = appuifw2.multi_query(u("Find"), u("Replace"))
         if ans is None: return
         self.find_text = ans[0]
         self.replace_text = ans[1]
-        if self.doFind(self.find_text):
+        while self.doFind(self.find_text):
+            pos = self.editor.get_pos()
+            dy = 0             # make sure the found text is visible
+            while True:        # behind the query dialog
+                x, y = self.editor.pos2xy(pos)
+                if y <= LIMITY or dy == y:
+                    break # cannot scroll any more - end of text
+                dy = y
+                try:
+                    self.editor.move_display(appuifw2.EFLineDown)
+                except:
+                    pass
+            self.editor.set_selection(pos, pos-len(self.find_text))
+            if not appuifw2.query(u('Replace?'), 'query', ok=u('Yes'), cancel=u('Cancel')):
+                break
             self.doReplace(self.replace_text)
     
     def findEOL(self):
