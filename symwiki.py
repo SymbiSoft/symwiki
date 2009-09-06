@@ -1,4 +1,5 @@
 # symwiki.py: Simple personal wiki for S60 Ed.3 smartphones
+# -*- coding: utf-8 -*-
 # 
 # Copyright (C) Dmitri Brechalov, 2008
 #
@@ -28,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.0.5'
+VERSION = '1.1.0'
 
 class WikiEditor(xText):
     version = VERSION
@@ -44,7 +45,7 @@ class WikiEditor(xText):
             self.doSave()
             if not noHistory:   # do not add to history if going back
                 self.history.append((os.path.split(self.fname)[1], self.editor.get_pos()))
-        appuifw2.app.title = u('%s - %s') % (self.title, name)
+        appuifw2.app.title = u('%s - %s') % (self.title, u(name))
         self.fname = os.path.join(self.wikidir, name)
         if not os.path.exists(self.fname):
             fn = open(self.fname, 'w')
