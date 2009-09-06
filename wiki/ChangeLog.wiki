@@ -1,8 +1,14 @@
 #summary Project ChangeLog
 
+==== 2009-09-06 Version 1.1 ====
+
+  * History saves both file name and cursor position in it;
+  * Insert link surrounded selected text if any instead of asking for the page name;
+  * Right softkey works as Exit when History is empty and as Back otherwise;
+  * Unicode filenames for wiki-pages.
+
 ==== 2008-12-29 Version 1.0 ====
 
-  * *Version 1.0* released.
   * List of all pages;
   * History fixed: full path from the page title removed;
   * Go Home option is now bind to Func + Right Softkey (Func is a Call or Yes button)
