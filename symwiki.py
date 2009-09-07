@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 
 class WikiEditor(xText):
     version = VERSION
@@ -100,18 +100,60 @@ To open a link put the cursor on the link between double brackets and press *Sel
         txt = self.editor.get(lpos, rpos-lpos)
         return s(txt)
         
-    def insertLink(self):
+    def insertMarkup(self, markup, prompt=''):
         (pos, anchor, text) = self.editor.get_selection()
         if not text:
-            text = appuifw2.query(u('Page name'), 'text')
-            if text is None: return
-        text = u('[[%s]]') % (text)
+            if prompt:
+                text = appuifw2.query(u(prompt), 'text')
+                if text is None: return
+            else:
+                text = ''
+        if markup.find('%s') > 0:
+            text = u(markup) % (text)
+        else:
+            text = u(markup)
         if pos > anchor:
             pos, anchor = anchor, pos
         self.editor.delete(pos, anchor-pos)
         self.editor.set_pos(pos)
         self.editor.add(text)
-    
+
+    def insertCustomMarkup(self):
+        text = appuifw2.query(u('Text to insert:'), 'text')
+        if text is None: return
+        self.insertMarkup(s(text))
+
+    def insertLink(self):
+        self.insertMarkup('[[%s]]', 'Page name')
+
+    def insertWikiSyntax(self):
+        markup = {
+            # Label            Markup
+            'Link':            '[[%s]]',
+            'Bold':            '**%s**',
+            'Italic':          '//%s//',
+            'Underlined':      '__%s__',
+            'Monospaced':      "''%s''",
+            'Header 1':        '====== %s ======',
+            'Header 2':        '===== %s =====',
+            'Header 3':        '==== %s ====',
+            'Header 4':        '=== %s ===',
+            'Header 5':        '== %s ==',
+            'Header 6':        '= %s =',
+            'List item':       '\n   * ',
+            'List item ord.':  '\n   - ',
+            'Image':           '{{%s}}',
+            'Horizontal rule': '\n----\n'
+            }
+        lst = markup.keys()
+        lst.sort()
+        ans = appuifw2.selection_list(map(u, ['Custom...'] + lst), 1)
+        if ans is None: return
+        if ans == 0:
+            self.insertCustomMarkup()
+        else:
+            self.insertMarkup(markup[lst[ans-1]])
+        
     def clickEvent(self):
         txt = self.findLink()
         if txt is not None:
@@ -140,8 +182,9 @@ To open a link put the cursor on the link between double brackets and press *Sel
             os.mkdir(self.wikidir)
         self.goHome()
         appuifw2.app.menu = [
-            (u("Insert link"), self.insertLink),
-            (u("All pages"), self.listPages),
+            (u('Insert link'), self.insertLink),
+            (u('Insert...'), self.insertWikiSyntax),
+            (u("All pages..."), self.listPages),
             (u("Edit"), ((u("Undo"), self.undo),
                          (u("Cut"), self.cut),
                          (u("Copy"), self.copy),
