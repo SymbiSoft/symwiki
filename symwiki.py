@@ -158,6 +158,8 @@ To open a link put the cursor on the link between double brackets and press *Sel
         txt = self.findLink()
         if txt is not None:
             self.openPage(txt)
+        else:
+            self.doFind(u('[['))
 
     def listPages(self):
         lst = os.listdir(self.wikidir)
