@@ -78,9 +78,11 @@ To open a link put the cursor on the link between double brackets and press *Sel
 
     def setExitKeyText(self):
         if len(self.history) == 0:
-            appuifw2.app.exit_key_text = u('Exit')
+            txt = u('Exit')
         else:
-            appuifw2.app.exit_key_text = u('Back')
+            txt = u('Back')
+        appuifw2.app.exit_key_text = txt
+        self.bindExitKey((txt, self.goBack), (u('Home'), self.goHome))
         
     def findLink(self):
         '''Search the [[link]] around cursor
@@ -152,7 +154,7 @@ To open a link put the cursor on the link between double brackets and press *Sel
             (u("About"), self.aboutDlg),
             (u("Exit"), self.quit)
             ]
-        self.bindExitKey((u('Exit'), self.goBack), (u('Home'), self.goHome))
+        self.setExitKeyText()
         self.bindSelectKey(self.clickEvent)
         self.editor.has_changed = False
         e32.ao_yield()
