@@ -1,7 +1,7 @@
 # symwiki.py: Simple personal wiki for S60 Ed.3 smartphones
 # -*- coding: utf-8 -*-
 # 
-# Copyright (C) Dmitri Brechalov, 2008
+# Copyright (C) Dmitri Brechalov, 2009
 #
 # Project URL: http://code.google.com/p/symwiki/
 # 
@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.1.1'
+VERSION = '1.1.2'
 
 class WikiEditor(xText):
     version = VERSION
@@ -40,30 +40,36 @@ class WikiEditor(xText):
         self.history = list()
         self.wikidir = 'E:/Wiki'
 
+    def saveHistory(self):
+        self.history.append((os.path.split(self.fname)[1], self.editor.get_pos()))
+        self.setExitKeyText()
+
     def openPage(self, name, pos=0, noHistory=False):
         if self.fname is not None:
             self.doSave()
             if not noHistory:   # do not add to history if going back
-                self.history.append((os.path.split(self.fname)[1], self.editor.get_pos()))
+                self.saveHistory()
         appuifw2.app.title = u('%s - %s') % (self.title, u(name))
-        self.fname = os.path.join(self.wikidir, name)
-        if not os.path.exists(self.fname):
-            fn = open(self.fname, 'w')
-            if name == self.frontpage:
-                txt = '''Welcome to SymWiki - your personal Wiki on S60 device!
+        fname = os.path.join(self.wikidir, name)
+        if fname != self.fname:
+            self.fname = fname
+            if not os.path.exists(self.fname):
+                fn = open(self.fname, 'w')
+                if name == self.frontpage:
+                    txt = '''Welcome to SymWiki - your personal Wiki on S60 device!
 
-This is a Home page, the main page of the Wiki. Replace its contents with your own.
+    This is a Home page, the main page of the Wiki. Replace its contents with your own.
 
-To insert link to another page press *Options*, select *Insert link* and type the name of the page.
+    To insert link to another page press *Options*, select *Insert link* and type the name of the page.
 
-To open a link put the cursor on the link between double brackets and press *Select* button.
-'''
-            else:
-                txt = ''
-            fn.write(txt)
-            fn.close()
-        self.setExitKeyText()
-        self.doOpen()
+    To open a link put the cursor on the link between double brackets and press *Select* button.
+    '''
+                else:
+                    txt = ''
+                fn.write(txt)
+                fn.close()
+            self.setExitKeyText()
+            self.doOpen()
         self.editor.set_pos(pos)
 
     def goBack(self):
@@ -83,6 +89,20 @@ To open a link put the cursor on the link between double brackets and press *Sel
             txt = u('Back')
         appuifw2.app.exit_key_text = txt
         self.bindExitKey((txt, self.goBack), (u('Home'), self.goHome))
+
+    def moveMenu(self):
+        self.rebindFunKeys()
+        ans = appuifw2.popup_menu([u('Section'), u('Top'), u('Bottom'), u('Goto line')])
+        if ans is not None:
+            if ans == 0:
+                self.listHeadings()
+            elif ans == 1:
+                schedule(self.moveCursor, 0, appuifw2.EFNoMovement)
+            elif ans == 2:
+                schedule(self.moveCursor, len(self.editor.get()), appuifw2.EFNoMovement)
+            elif ans == 3:
+                schedule(self.gotoLine)
+        self.moveEvent()
         
     def findLink(self):
         '''Search the [[link]] around cursor
@@ -169,8 +189,25 @@ To open a link put the cursor on the link between double brackets and press *Sel
         fname = lst[ans]
         self.openPage(fname)
 
+    def listHeadings(self):
+        ln = list()
+        lp = list()
+        txt = self.editor.get()
+        count = 1
+        for mo in re.finditer(u'(^|\u2029)(=+)(.+?)=+', txt):
+            n = 6 - len(mo.group(2))
+            hdr = u'  ' * n + mo.group(3).strip()
+            ln.append(hdr)
+            lp.append(mo.start())
+            count += 1
+        ans = appuifw2.selection_list(ln, 1)
+        if ans is None: return
+#         self.saveHistory()
+        pos = lp[ans]
+        self.editor.set_pos(pos+1)
+
     def aboutDlg(self):
-        appuifw2.query(u('SymWiki\nVersion %s\n(C) Dmitri Brechalov, 2008' % (self.version)), 'query', ok=u(''), cancel=u('Close'))
+        appuifw2.query(u('SymWiki\nVersion %s\n(C) Dmitri Brechalov, 2009' % (self.version)), 'query', ok=u(''), cancel=u('Close'))
 
     def quit(self):
         self.doSave()
