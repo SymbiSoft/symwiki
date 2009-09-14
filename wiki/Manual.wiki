@@ -25,7 +25,7 @@ The Wiki pages are saved to `E:\Wiki` directory (created automatically at the fi
 
 = Wiki-syntax =
 
-The program implements a subset of [http://www.emacswiki.org/emacs/?action=browse;id=EmacsMuse emacs-muse] markup.
+The program implements a [http://www.wikicreole.org/wiki/CheatSheet Creole] markup.
 
  * `[[page name]]` indicated a hyperlink to the page which name is inside double brackets.
  * empty line separates paragraphs.
