@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.1.2'
+VERSION = '1.2.0'
 
 class WikiEditor(xText):
     version = VERSION
@@ -153,17 +153,22 @@ class WikiEditor(xText):
             'Bold':            '**%s**',
             'Italic':          '//%s//',
             'Underlined':      '__%s__',
-            'Monospaced':      "''%s''",
-            'Header 1':        '====== %s ======',
-            'Header 2':        '===== %s =====',
-            'Header 3':        '==== %s ====',
-            'Header 4':        '=== %s ===',
-            'Header 5':        '== %s ==',
-            'Header 6':        '= %s =',
-            'List item':       '\n   * ',
-            'List item ord.':  '\n   - ',
+            'Preformated':     '{{{%s}}}',
+            'Header 1':        '= %s',
+            'Header 2':        '== %s',
+            'Header 3':        '=== %s',
+            'Header 4':        '==== %s',
+            'Header 5':        '===== %s',
+            'Header 6':        '====== %s',
+            'List unord.':     '\n* ',
+            'List ordered':    '\n# ',
             'Image':           '{{%s}}',
-            'Horizontal rule': '\n----\n'
+            'Horizontal rule': '\n----\n',
+            'Line break':      r'\\',
+            '|': '|',
+            '*': '*',
+            '#': '#',
+            '~': '~',
             }
         lst = markup.keys()
         lst.sort()
@@ -194,8 +199,8 @@ class WikiEditor(xText):
         lp = list()
         txt = self.editor.get()
         count = 1
-        for mo in re.finditer(u'(^|\u2029)(=+)(.+?)=+', txt):
-            n = 6 - len(mo.group(2))
+        for mo in re.finditer(u'(^|\u2029)(=+)(.+?)($|\u2029)', txt):
+            n = len(mo.group(2)) - 1
             hdr = u'  ' * n + mo.group(3).strip()
             ln.append(hdr)
             lp.append(mo.start())
