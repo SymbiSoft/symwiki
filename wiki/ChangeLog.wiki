@@ -5,7 +5,7 @@
   * Creole markup is implemented instead of DokuWiki
   * List of all sections in the document: Func+Select and select "Sections" menu item, then select a section title to quickly move to the section
   * Right softkey label fixed
-  * 
+  * Insert wiki markup with menu
 
 ==== 2009-09-06 Version 1.1 ====
 
