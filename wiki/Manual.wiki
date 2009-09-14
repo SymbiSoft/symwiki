@@ -29,3 +29,4 @@ The program implements a [http://www.wikicreole.org/wiki/CheatSheet Creole] mark
 
  * `[[page name]]` indicated a hyperlink to the page which name is inside double brackets.
  * empty line separates paragraphs.
+ * One or more `=` starting a line indicated heading of a section (`=` - H1, `==` - H2 etc)
