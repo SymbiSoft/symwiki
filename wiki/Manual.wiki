@@ -1,4 +1,4 @@
-#summary = SymWiki User Manual =
+#summary SymWiki User Manual
 #labels Featured
 = User Manual =
 
