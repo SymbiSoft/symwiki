@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.3.0'
+VERSION = '1.3.1'
 
 ParaChar = u"\u2029"
 
@@ -225,7 +225,7 @@ class WikiEditor(xText):
         lp = list()
         txt = self.editor.get()
         count = 1
-        for mo in re.finditer(u'(^|\u2029)(=+)(.+?)($|\u2029)', txt):
+        for mo in re.finditer(u'(^|\u2029)(=+)(.+?)=*($|\u2029)', txt):
             n = len(mo.group(2)) - 1
             hdr = u'  ' * n + mo.group(3).strip()
             ln.append(hdr)
@@ -252,7 +252,6 @@ class WikiEditor(xText):
             os.mkdir(self.wikidir)
         self.goHome()
         appuifw2.app.menu = [
-            (u('Insert link'), self.insertLink),
             (u('Home'), self.goHome),
             (u("Pages"), self.listPages),
             (u("Edit"), ((u("Undo"), self.undo),
