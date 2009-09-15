@@ -159,37 +159,35 @@ class WikiEditor(xText):
         self.insertMarkup('[[%s]]', 'Page name')
 
     def insertWikiSyntax(self):
-        markup = {
-            # Label            Markup
-            'Link':            '[[%s]]',
-            'Bold':            '**%s**',
-            'Italic':          '//%s//',
-            'Underlined':      '__%s__',
-            'Preformated':     '{{{%s}}}',
-            'Header 1':        '= %s',
-            'Header 2':        '== %s',
-            'Header 3':        '=== %s',
-            'Header 4':        '==== %s',
-            'Header 5':        '===== %s',
-            'Header 6':        '====== %s',
-            'List unord.':     '* ',
-            'List ordered':    '# ',
-            'Image':           '{{%s}}',
-            'Horizontal rule': '\n----\n',
-            'Line break':      r'\\',
-            '|': '|',
-            '*': '*',
-            '#': '#',
-            '~': '~',
-            }
-        lst = markup.keys()
-        lst.sort()
-        ans = appuifw2.selection_list(map(u, ['Custom...'] + lst), 1)
+        markup = (
+            # (Label,            Markup)
+            ('Link',            self.insertLink),
+            ('Bold',            '**%s**'),
+            ('Italic',          '//%s//'),
+            ('Underlined',      '__%s__'),
+            ('Preformated',     '{{{%s}}}'),
+            ('List unord.',     '* '),
+            ('List ordered',    '# '),
+            ('Header 1',        '= %s'),
+            ('Header 2',        '== %s'),
+            ('Header 3',        '=== %s'),
+            ('Header 4',        '==== %s'),
+            ('Header 5',        '===== %s'),
+            ('Header 6',        '====== %s'),
+            ('Image',           '{{%s}}'),
+            ('Horizontal rule', '\n----\n'),
+            ('Line break',      r'\\'),
+            ('Custom...',       self.insertCustomMarkup),
+            )
+        labels = map(lambda x: u(x[0]), markup)
+        data = map(lambda x: x[1], markup)
+        ans = appuifw2.selection_list(labels, 1)
         if ans is None: return
-        if ans == 0:
-            self.insertCustomMarkup()
+        selected = data[ans]
+        if callable(selected):
+            selected()
         else:
-            self.insertMarkup(markup[lst[ans-1]])
+            self.insertMarkup(selected)
         
     def insertNewlineAndIndent(self):
         def getCurrentLine():
