@@ -29,7 +29,9 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.2.0'
+VERSION = '1.3.0'
+
+ParaChar = u"\u2029"
 
 class WikiEditor(xText):
     version = VERSION
@@ -88,19 +90,26 @@ class WikiEditor(xText):
         else:
             txt = u('Back')
         appuifw2.app.exit_key_text = txt
-        self.bindExitKey((txt, self.goBack), (u('Home'), self.goHome))
+        self.bindExitKey((txt, self.goBack), (u('Insert'), self.insertWikiSyntax))
 
     def moveMenu(self):
         self.rebindFunKeys()
-        ans = appuifw2.popup_menu([u('Section'), u('Top'), u('Bottom'), u('Goto line')])
+        ans = appuifw2.popup_menu([
+                u('Next link'),
+                u('Section'),
+                u('Top'),
+                u('Bottom'),
+                u('Goto line')])
         if ans is not None:
             if ans == 0:
-                self.listHeadings()
+                self.findNextLink()
             elif ans == 1:
-                schedule(self.moveCursor, 0, appuifw2.EFNoMovement)
+                self.listHeadings()
             elif ans == 2:
-                schedule(self.moveCursor, len(self.editor.get()), appuifw2.EFNoMovement)
+                schedule(self.moveCursor, 0, appuifw2.EFNoMovement)
             elif ans == 3:
+                schedule(self.moveCursor, len(self.editor.get()), appuifw2.EFNoMovement)
+            elif ans == 4:
                 schedule(self.gotoLine)
         self.moveEvent()
         
@@ -119,6 +128,9 @@ class WikiEditor(xText):
         rpos = pos + len(m.group(1))
         txt = self.editor.get(lpos, rpos-lpos)
         return s(txt)
+
+    def findNextLink(self):
+        self.doFind(u('[['))
         
     def insertMarkup(self, markup, prompt=''):
         (pos, anchor, text) = self.editor.get_selection()
@@ -160,8 +172,8 @@ class WikiEditor(xText):
             'Header 4':        '==== %s',
             'Header 5':        '===== %s',
             'Header 6':        '====== %s',
-            'List unord.':     '\n* ',
-            'List ordered':    '\n# ',
+            'List unord.':     '* ',
+            'List ordered':    '# ',
             'Image':           '{{%s}}',
             'Horizontal rule': '\n----\n',
             'Line break':      r'\\',
@@ -179,12 +191,28 @@ class WikiEditor(xText):
         else:
             self.insertMarkup(markup[lst[ans-1]])
         
+    def insertNewlineAndIndent(self):
+        def getCurrentLine():
+            pos = self.editor.get_pos()
+            txt = self.editor.get()[:pos]
+            # look for the start of line
+            i = pos-1
+            while i >= 0 and txt[i] != ParaChar:
+                i -= 1
+            return txt[i+1:]
+        line = getCurrentLine()
+        indentchars = u''
+        mo = re.match(u'^([#* ]+ )', line)
+        if mo is not None:
+                indentchars += mo.group(1)
+        self.editor.add(ParaChar+indentchars)
+
     def clickEvent(self):
         txt = self.findLink()
         if txt is not None:
             self.openPage(txt)
         else:
-            self.doFind(u('[['))
+            self.insertNewlineAndIndent()
 
     def listPages(self):
         lst = os.listdir(self.wikidir)
@@ -227,8 +255,8 @@ class WikiEditor(xText):
         self.goHome()
         appuifw2.app.menu = [
             (u('Insert link'), self.insertLink),
-            (u('Insert...'), self.insertWikiSyntax),
-            (u("All pages..."), self.listPages),
+            (u('Home'), self.goHome),
+            (u("Pages"), self.listPages),
             (u("Edit"), ((u("Undo"), self.undo),
                          (u("Cut"), self.cut),
                          (u("Copy"), self.copy),
