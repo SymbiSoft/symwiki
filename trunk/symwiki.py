@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.3.1'
+VERSION = '1.4.0'
 
 ParaChar = u"\u2029"
 
@@ -41,9 +41,10 @@ class WikiEditor(xText):
         xText.__init__(self)
         self.history = list()
         self.wikidir = 'E:/Wiki'
+        self.page = ''
 
     def saveHistory(self):
-        self.history.append((os.path.split(self.fname)[1], self.editor.get_pos()))
+        self.history.append((self.page, self.editor.get_pos()))
         self.setExitKeyText()
 
     def openPage(self, name, pos=0, noHistory=False):
@@ -52,9 +53,10 @@ class WikiEditor(xText):
             if not noHistory:   # do not add to history if going back
                 self.saveHistory()
         appuifw2.app.title = u('%s - %s') % (self.title, u(name))
-        fname = os.path.join(self.wikidir, name)
+        fname = os.path.join(self.wikidir, name.lower()) + '.txt'
         if fname != self.fname:
             self.fname = fname
+            self.page = name
             if not os.path.exists(self.fname):
                 fn = open(self.fname, 'w')
                 if name == self.frontpage:
