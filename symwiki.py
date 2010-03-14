@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.4.0'
+VERSION = '1.4.1'
 
 ParaChar = u"\u2029"
 
@@ -53,7 +53,7 @@ class WikiEditor(xText):
             if not noHistory:   # do not add to history if going back
                 self.saveHistory()
         appuifw2.app.title = u('%s - %s') % (self.title, u(name))
-        fname = os.path.join(self.wikidir, name.lower()) + '.txt'
+        fname = os.path.join(self.wikidir, name.lower().replace(' ', '-')) + '.txt'
         if fname != self.fname:
             self.fname = fname
             self.page = name
@@ -97,26 +97,23 @@ class WikiEditor(xText):
     def moveMenu(self):
         self.rebindFunKeys()
         ans = appuifw2.popup_menu([
-                u('Next link'),
                 u('Section'),
                 u('Top'),
                 u('Bottom'),
                 u('Goto line')])
         if ans is not None:
             if ans == 0:
-                self.findNextLink()
-            elif ans == 1:
                 self.listHeadings()
-            elif ans == 2:
+            elif ans == 1:
                 schedule(self.moveCursor, 0, appuifw2.EFNoMovement)
-            elif ans == 3:
+            elif ans == 2:
                 schedule(self.moveCursor, len(self.editor.get()), appuifw2.EFNoMovement)
-            elif ans == 4:
+            elif ans == 3:
                 schedule(self.gotoLine)
         self.moveEvent()
         
     def findLink(self):
-        '''Search the [[link]] around cursor
+        '''Search the [[link|label]] around cursor
         Return u"text" of the link or None
         '''
         pos = self.editor.get_pos()
@@ -128,8 +125,12 @@ class WikiEditor(xText):
         if not m:
             return None
         rpos = pos + len(m.group(1))
-        txt = self.editor.get(lpos, rpos-lpos)
-        return s(txt)
+        txt = s(self.editor.get(lpos, rpos-lpos))
+        try:
+            link, label = txt.split('|', 1)
+        except:
+            link = txt
+        return link
 
     def findNextLink(self):
         self.doFind(u('[['))
@@ -210,12 +211,18 @@ class WikiEditor(xText):
     def clickEvent(self):
         txt = self.findLink()
         if txt is not None:
-            self.openPage(txt)
+            try:
+                pagename, anchor = txt.split('#')
+            except:
+                pagename = txt
+                anchor = None
+            self.openPage(pagename)
         else:
             self.insertNewlineAndIndent()
 
     def listPages(self):
         lst = os.listdir(self.wikidir)
+        lst = [ os.path.splitext(item)[0] for item in lst ]
         lst.sort()
         ans = appuifw2.selection_list(map(u, lst), 1)
         if ans is None: return
@@ -270,6 +277,7 @@ class WikiEditor(xText):
             ]
         self.setExitKeyText()
         self.bindSelectKey(self.clickEvent)
+        self.bindYesKey(self.findNextLink)
         self.editor.has_changed = False
         e32.ao_yield()
         appuifw2.app.body = self.editor
