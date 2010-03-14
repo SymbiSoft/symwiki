@@ -22,9 +22,11 @@ from utils import *
 class xText(object):
     '''eXtended Text editor
     '''
-    def __init__(self):
+    def __init__(self, font='normal'):
         self.editor = appuifw2.Text(move_callback=self.moveEvent, edit_callback=self.changeEvent, skinned=True)
-        self.editor.style = appuifw2.STYLE_BOLD
+#        self.editor.style = appuifw2.STYLE_BOLD
+        # Default font is: (u'Nokia Hindi S60',15,16)
+        self.editor.font = font
         self.fname = None
         self.tags = []
         self.hdr = None
@@ -34,6 +36,7 @@ class xText(object):
         self.funkey_timer = None
         self.exit_key_handlers = (None, None)  # ((u"Label", callback), (u"FnLabel", fn_callback))
         self.select_key_handler = (None, None) # (callback, fn_callback)
+        self.yes_key_handler = None # (fn_callback)
 
     def dummy(self):
         appuifw2.note(u('Not implmented yet!'), 'error')
@@ -45,6 +48,9 @@ class xText(object):
     
     def bindSelectKey(self, handler=None, fnhandler=None):
         self.select_key_handler = (handler, fnhandler)
+
+    def bindYesKey(self, fnhandler):
+        self.yes_key_handler = fnhandler
     
     def notSaved(self):
         if self.editor.has_changed:
@@ -80,7 +86,7 @@ class xText(object):
         self.editor.bind(key_codes.EKeyDownArrow,  lambda : self.arrowKeyPressed(pos, appuifw2.EFPageDown))
         self.editor.bind(key_codes.EKeyLeftArrow,  lambda : self.arrowKeyPressed(pos, appuifw2.EFLineBeg))
         self.editor.bind(key_codes.EKeyRightArrow, lambda : self.arrowKeyPressed(pos, appuifw2.EFLineEnd))
-        self.editor.bind(key_codes.EKeyYes,        self.rebindFunKeys)
+
         fnhandler = self.select_key_handler[1]
         if fnhandler is not None:
             self.editor.bind(key_codes.EKeySelect, lambda : self.funkeyPressed(fnhandler))
@@ -91,6 +97,8 @@ class xText(object):
         if fnhandler is not None:
             appuifw2.app.exit_key_handler = lambda : self.funkeyPressed(fnhandler[1])
             appuifw2.app.exit_key_text = fnhandler[0]
+        if self.yes_key_handler is not None:
+            self.editor.bind(key_codes.EKeyYes, lambda : self.funkeyPressed(self.yes_key_handler))
         self.editor.indicator_text = u('Func')
         
     def rebindFunKeys(self):
@@ -101,7 +109,6 @@ class xText(object):
         for key in (key_codes.EKeyUpArrow, key_codes.EKeyDownArrow, key_codes.EKeyLeftArrow, key_codes.EKeyRightArrow):
             self.editor.bind(key, lambda : None)
         self.editor.bind(key_codes.EKeyYes, self.yesKeyPressed)
-        self.editor.bind(key_codes.EKeyStar, self.starKeyPressed)
         self.editor.indicator_text = self.old_indicator
         handler = self.select_key_handler[0]
         if handler is not None:
@@ -112,10 +119,6 @@ class xText(object):
         if handler is not None:
             appuifw2.app.exit_key_handler = handler[1]
             appuifw2.app.exit_key_text = handler[0]
-
-    def starKeyPressed(self):
-        appuifw2.note(u('Star key pressed'))
-        e32.ao_yeld()
 
     def arrowKeyPressed(self, pos, cmd):
         self.rebindFunKeys()
