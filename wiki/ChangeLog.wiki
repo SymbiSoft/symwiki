@@ -1,5 +1,22 @@
 #summary Project ChangeLog
 
+==== 2010-03-14 Version 1.5 ====
+
+  * Normal work with '|' and '#' in links. Now it is possible to use full syntax: `[[link|label]]`
+  * GUI optimization: press Green Tube (Yes button) twice to jump to the nearest link
+  * Default font became 'normal'
+  * Spaces in links will be replaces with dashes automatically: click on `[[Page One]]` will open `page-one.txt` file
+  * Simple search through all pages implemented (*Search->Search Pages* menu item)
+
+==== Version 1.4 (Unpublished) ====
+
+  * Filenames became DokuWiki compatible: lowercase, no spaces (replaced with dashes), `.txt` extension required. *Please note:* _you have to rename all your files to `*.txt` manually!_
+
+==== Version 1.3 (Unpublished) ====
+
+  * 'Clever Select key' - open link under cursor if any, or insert new line with indent (or list bullet if any)
+  * GUI optimized
+
 ==== 2009-09-15 ====
 
   * New User Manual
