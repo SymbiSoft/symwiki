@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.5.0'
+VERSION = '1.5.1'
 
 ParaChar = u"\u2029"
 
@@ -52,6 +52,12 @@ class WikiEditor(xText):
         '''
         return os.path.join(self.wikidir, name.lower().replace(' ', '-')) + '.txt'
 
+    def doSave(self):
+        if len(self.editor.get()) > 0:
+            if self.editor.has_changed:
+                xText.doSave(self)
+        else:                   # empty file - remove
+            os.remove(self.fname)
 
     def openPage(self, name, pos=0, noHistory=False):
         if self.fname is not None:
