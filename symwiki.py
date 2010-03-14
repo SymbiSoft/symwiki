@@ -29,7 +29,7 @@ from utils import *
 from xtext import xText
 
 UID = u"e3e34da3"
-VERSION = '1.4.1'
+VERSION = '1.5.0'
 
 ParaChar = u"\u2029"
 
@@ -47,13 +47,19 @@ class WikiEditor(xText):
         self.history.append((self.page, self.editor.get_pos()))
         self.setExitKeyText()
 
+    def __fileName(self, name):
+        '''Return full filename for the page name
+        '''
+        return os.path.join(self.wikidir, name.lower().replace(' ', '-')) + '.txt'
+
+
     def openPage(self, name, pos=0, noHistory=False):
         if self.fname is not None:
             self.doSave()
             if not noHistory:   # do not add to history if going back
                 self.saveHistory()
         appuifw2.app.title = u('%s - %s') % (self.title, u(name))
-        fname = os.path.join(self.wikidir, name.lower().replace(' ', '-')) + '.txt'
+        fname = self.__fileName(name)
         if fname != self.fname:
             self.fname = fname
             self.page = name
@@ -220,12 +226,34 @@ class WikiEditor(xText):
         else:
             self.insertNewlineAndIndent()
 
-    def listPages(self):
+    def __getPageList(self):
         lst = os.listdir(self.wikidir)
         lst = [ os.path.splitext(item)[0] for item in lst ]
         lst.sort()
+        return lst
+
+    def listPages(self):
+        lst = self.__getPageList()
         ans = appuifw2.selection_list(map(u, lst), 1)
+        if ans is None or ans not in range(len(lst)): return
+        fname = lst[ans]
+        self.openPage(fname)
+
+    def __doSearch(self, text):
+        result = list()
+        for pname in self.__getPageList():
+            fname = self.__fileName(pname)
+            if open(fname, 'r').read().find(text) >= 0:
+                result.append(pname)
+        return result
+
+    def searchPages(self):
+        ans = appuifw2.query(u("Search text"), "text", self.find_text)
         if ans is None: return
+        self.find_text = ans
+        lst = self.__doSearch(s(ans))
+        ans = appuifw2.selection_list(map(u, lst), 1)
+        if ans is None or ans not in range(len(lst)): return
         fname = lst[ans]
         self.openPage(fname)
 
@@ -269,7 +297,8 @@ class WikiEditor(xText):
                          (u("Paste"), self.paste),
                          (u("Select All"), self.selectAll),
                          (u("Select None"), self.selectNone))),
-            (u("Search"), ((u("Find Forward"), self.findTextForward),
+            (u("Search"), ((u("Search Pages"), self.searchPages),
+                           (u("Find Forward"), self.findTextForward),
                            (u("Find Backward"), self.findTextBackward),
                            (u("Replace"), self.replaceText))),
             (u("About"), self.aboutDlg),
