@@ -819,12 +819,24 @@ def test():
     ftp.quit()
 
 def pline(data):
+    months = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+    import time
+    year = time.localtime()[0]
     fields = data.split()
     size = fields[4]
-    date = ' '.join(fields[5:7])
+    sm = fields[5]
+    month = 0
+    for i in range(len(months)):
+        if sm == months[i]:
+            month = i + 1
+    day = int(fields[6])
     time = fields[7]
+    if time.find(':') < 0:
+        year = time
+        time = '00:00'
+    date = '%4s-%02i-%02i' % (year, month, day)
     name = fields[8]
-    print '%s\t%s\t%s\t%s' % (name, size, date, time)
+    print '%20s %8s\t%s\t%s' % (name, size, date, time)
 
 def test2():
     host = raw_input('host name: ')
