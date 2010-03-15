@@ -2,6 +2,7 @@
 # ftpsync.py: simple ftp synchronization
 
 import sys
+import os
 sys.path.append('E:\\Python')
 
 from ftplib import FTP
@@ -47,7 +48,6 @@ def getLList(ldir):
     each element is {'filename': (size, time)}
     where size is int in bytes, time is str in format: "YYYY-MM-DD HH:MM"
     '''
-    import os
     import time
     result = dict()
     for fname in os.listdir(ldir):
@@ -86,8 +86,6 @@ def printList(data):
         print fname, '\t', data[fname][0], '\t', data[fname][1]
 
 def readConfig():
-    import os.path
-    import sys
     cfgname = 'ftp.cfg'
     cfgpath = os.path.split(sys.argv[0])[0]
     cfgfile = os.path.join(cfgpath, cfgname)
@@ -108,25 +106,32 @@ def readConfig():
         result[k.strip()] = v.strip()
     return result
 
+def downloadFile(ftp, ldir, rdir, fname):
+    fd = open(os.path.join(ldir, fname), 'w')
+    save = lambda line: fd.write('%s\n' % line)
+    ftp.cwd(rdir)
+    ftp.retrlines('RETR ' + fname, save)
+    fd.close()
+
+def uploadFile(ftp, ldir, rdir, fname):
+    fd = open(os.path.join(ldir, fname), 'r')
+    ftp.cwd(rdir)
+    ftp.storlines('STOR ' + fname, fd)
+    fd.close()
+
 if __name__ == '__main__':
     cfg = readConfig()
     ftp = FTP(cfg['host'])
     ftp.login(cfg['login'], cfg['password'])
     rdir = cfg['remote']
     rlst = getRList(ftp, rdir)
-    print 'Remote dir:'
-    printList(rlst)
-    ftp.close()
-    print
     ldir = cfg['local']
     llst = getLList(ldir)
-    print 'Local dir:'
-    printList(llst)
     dl = diffLists(llst, rlst)
     fnames = dl.keys()
     fnames.sort()
     print
-    print 'Diff:'
+    print 'Syncing...'
     for fname in fnames:
         try:
             sltime = llst[fname][1]
@@ -136,5 +141,14 @@ if __name__ == '__main__':
             srtime = rlst[fname][1]
         except KeyError:
             srtime = 'missing'
-        print fname, dl[fname], ':', sltime, ':', srtime
-        
+        print fname, #'[', sltime, ':', srtime, ']',
+        if dl[fname] == 'U':
+            uploadFile(ftp, ldir, rdir, fname)
+            print '- uploaded'
+        elif dl[fname] == 'D':
+            downloadFile(ftp, ldir, rdir, fname)
+            print '- downloaded'
+        else:
+            print dl[fname], 'mode is not implemented yet'
+    ftp.close()
+    print 'Done.'
