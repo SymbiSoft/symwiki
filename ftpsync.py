@@ -67,13 +67,17 @@ def diffLists(llst, rlst):
     for f in rlst.keys():
         if f not in allfiles: allfiles.append(f)
     for fname in allfiles:
-        ldate = llst[fname][1]
-        rdate = rlst[fname][1]
-        if not rlst.has_key(fname): # no file in remote dir
-            result[fname] = 'U'
-        elif not llst.has_key(fname): # no file in local dir
-            result[fname] = 'D'
-        elif ldate < rdate:
+        try:
+            ldate = llst[fname][1]
+        except KeyError:
+            result[fname] = 'D' # no file in local dir
+            continue
+        try:
+            rdate = rlst[fname][1]
+        except KeyError:
+            result[fname] = 'U' # no file in remote dir
+            continue
+        if ldate < rdate:
             result[fname] = 'D'
         elif ldate > rdate:
             result[fname] = 'U'
@@ -141,7 +145,7 @@ if __name__ == '__main__':
             srtime = rlst[fname][1]
         except KeyError:
             srtime = 'missing'
-        print fname, #'[', sltime, ':', srtime, ']',
+        print fname, 'L:', sltime, 'R:', srtime,
         if dl[fname] == 'U':
             uploadFile(ftp, ldir, rdir, fname)
             print '- uploaded'
