@@ -3,58 +3,42 @@
 
 import sys
 import os
-sys.path.append('E:\\Python')
+if sys.platform == 'symbian_s60':
+    sys.path.append('E:\\Python')
+    cfgpath = 'E:\\Python'
+else:
+    cfgpath = os.path.split(sys.argv[0])[0]
 
 from ftplib import FTP
 
-def parseline(data):
-    '''Parse line of FTP.dir output and return tuple (filename, size, time)
-    '''
-    months = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
-    import time
-    year = time.localtime()[0]
-    fields = data.split()
-    size = int(fields[4])
-    sm = fields[5]
-    month = 0
-    for i in range(len(months)):
-        if sm == months[i]:
-            month = i + 1
-    day = int(fields[6])
-    time = fields[7]
-    if time.find(':') < 0:
-        year = time
-        time = '00:00'
-    date = '%4s-%02i-%02i %s' % (year, month, day, time)
-    name = fields[8]
-    return (name, size, date)
-
 def getRList(ftp, rdir):
     '''Return a dictionary with contents of the remote directory rdir
-    each element is {'filename': (size, time)}
+    each element is {'filename': time}
     where size is int in bytes, time is str in format: "YYYY-MM-DD HH:MM"
     '''
     result = dict()
-    def callback(x):
-        item = parseline(x)
-        if not item[0].startswith('.'):
-            fdata = parseline(x)
-            result[fdata[0]] = fdata[1:]
-    ftp.dir(rdir, callback)
+    ftp.cwd(rdir)
+    for fn in ftp.nlst():
+        if fn.startswith('.'): continue # skip . and ..
+        response = ftp.sendcmd('MDTM ' + fn)
+        try:
+            rc, timestamp = response.split(' ', 1)
+        except:
+            timestamp = '0' * 14
+        result[fn] = timestamp
     return result
 
 def getLList(ldir):
     '''Return a list with contents of the local directory ldir
-    each element is {'filename': (size, time)}
+    each element is {'filename': time}
     where size is int in bytes, time is str in format: "YYYY-MM-DD HH:MM"
     '''
     import time
     result = dict()
     for fname in os.listdir(ldir):
         stat = os.stat(os.path.join(ldir, fname))
-        fsize = stat.st_size
-        ftime = time.strftime('%Y-%m-%d %H:%M', time.gmtime(stat.st_mtime))
-        result[fname] = (fsize, ftime)
+        ftime = time.strftime('%Y%m%d%H%M%S', time.gmtime(stat.st_mtime))
+        result[fname] = ftime
     return result
 
 def diffLists(llst, rlst):
@@ -68,12 +52,12 @@ def diffLists(llst, rlst):
         if f not in allfiles: allfiles.append(f)
     for fname in allfiles:
         try:
-            ldate = llst[fname][1]
+            ldate = llst[fname]
         except KeyError:
             result[fname] = 'D' # no file in local dir
             continue
         try:
-            rdate = rlst[fname][1]
+            rdate = rlst[fname]
         except KeyError:
             result[fname] = 'U' # no file in remote dir
             continue
@@ -87,17 +71,12 @@ def printList(data):
     fnames = data.keys()
     fnames.sort()
     for fname in fnames:
-        print fname, '\t', data[fname][0], '\t', data[fname][1]
+        print fname, '\t', data[fname]
 
 def readConfig():
     cfgname = 'ftp.cfg'
-    cfgpath = os.path.split(sys.argv[0])[0]
     cfgfile = os.path.join(cfgpath, cfgname)
-    try:
-        cfg = open(cfgfile, 'r')
-    except:
-        cfgfile = 'E:\\Python\\' + cfgname # temp workaround for s60
-        cfg = open(cfgfile, 'r')
+    cfg = open(cfgfile, 'r')
     result = dict()
     for line in cfg.readlines():
         line = line.strip()
@@ -111,10 +90,12 @@ def readConfig():
     return result
 
 def downloadFile(ftp, ldir, rdir, fname):
-    fd = open(os.path.join(ldir, fname), 'w')
+    buf = list()
     save = lambda line: fd.write('%s\n' % line)
     ftp.cwd(rdir)
-    ftp.retrlines('RETR ' + fname, save)
+    ftp.retrlines('RETR ' + fname, buf.append)
+    fd = open(os.path.join(ldir, fname), 'w')
+    fd.write('\n'.join(buf))
     fd.close()
 
 def uploadFile(ftp, ldir, rdir, fname):
@@ -129,8 +110,12 @@ if __name__ == '__main__':
     ftp.login(cfg['login'], cfg['password'])
     rdir = cfg['remote']
     rlst = getRList(ftp, rdir)
+    print 'Remote dir:'
+    printList(rlst)
     ldir = cfg['local']
     llst = getLList(ldir)
+    print 'Local dir:'
+    printList(llst)
     dl = diffLists(llst, rlst)
     fnames = dl.keys()
     fnames.sort()
@@ -138,13 +123,13 @@ if __name__ == '__main__':
     print 'Syncing...'
     for fname in fnames:
         try:
-            sltime = llst[fname][1]
+            sltime = llst[fname]
         except KeyError:
-            sltime = 'missing'
+            sltime = '0' * 14
         try:
-            srtime = rlst[fname][1]
+            srtime = rlst[fname]
         except KeyError:
-            srtime = 'missing'
+            srtime = '0' * 14
         print fname, 'L:', sltime, 'R:', srtime,
         if dl[fname] == 'U':
             uploadFile(ftp, ldir, rdir, fname)
