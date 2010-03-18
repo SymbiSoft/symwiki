@@ -3,18 +3,22 @@
 
 import sys
 import os
+import time
+
 if sys.platform == 'symbian_s60':
     sys.path.append('E:\\Python')
     cfgpath = 'E:\\Python'
+    timefunc = time.localtime
 else:
     cfgpath = os.path.split(sys.argv[0])[0]
+    timefunc = time.gmtime
 
 from ftplib import FTP
 
 def getRList(ftp, rdir):
     '''Return a dictionary with contents of the remote directory rdir
     each element is {'filename': time}
-    where size is int in bytes, time is str in format: "YYYY-MM-DD HH:MM"
+    where size is int in bytes, time is str in format: "YYYYMMDDHHMM"
     '''
     result = dict()
     ftp.cwd(rdir)
@@ -28,17 +32,18 @@ def getRList(ftp, rdir):
         result[fn] = timestamp
     return result
 
+def getTime(d, fn):
+    stat = os.stat(os.path.join(d, fn))
+    return time.strftime('%Y%m%d%H%M%S', timefunc(stat.st_mtime))
+
 def getLList(ldir):
     '''Return a list with contents of the local directory ldir
     each element is {'filename': time}
-    where size is int in bytes, time is str in format: "YYYY-MM-DD HH:MM"
+    where size is int in bytes, time is str in format: "YYYYMMDDHHMM"
     '''
-    import time
     result = dict()
     for fname in os.listdir(ldir):
-        stat = os.stat(os.path.join(ldir, fname))
-        ftime = time.strftime('%Y%m%d%H%M%S', time.gmtime(stat.st_mtime))
-        result[fname] = ftime
+        result[fname] = getTime(ldir, fname)
     return result
 
 def diffLists(llst, rlst):
@@ -89,6 +94,10 @@ def readConfig():
         result[k.strip()] = v.strip()
     return result
 
+def touchRemote(ftp, rdir, fname, ts):
+    ftp.cwd(rdir)
+    ftp.sendcmd('SITE UTIME %s %s %s %s UTC' % (fname, ts, ts, ts))
+
 def downloadFile(ftp, ldir, rdir, fname):
     buf = list()
     save = lambda line: fd.write('%s\n' % line)
@@ -97,12 +106,14 @@ def downloadFile(ftp, ldir, rdir, fname):
     fd = open(os.path.join(ldir, fname), 'w')
     fd.write('\n'.join(buf))
     fd.close()
+    touchRemote(ftp, rdir, fname, getTime(ldir, fname))
 
 def uploadFile(ftp, ldir, rdir, fname):
     fd = open(os.path.join(ldir, fname), 'r')
     ftp.cwd(rdir)
     ftp.storlines('STOR ' + fname, fd)
     fd.close()
+    touchRemote(ftp, rdir, fname, getTime(ldir, fname))
 
 if __name__ == '__main__':
     cfg = readConfig()
