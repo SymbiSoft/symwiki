@@ -5,13 +5,41 @@ import sys
 import os
 import time
 
+tzdiff = time.mktime(time.gmtime())-time.mktime(time.localtime())
+
+def getLTime(d, fn):
+    stat = os.stat(os.path.join(d, fn))
+    return time.strftime('%Y%m%d%H%M%S', timefunc(stat.st_mtime))
+
+def getRTime(ftp, fn):
+    response = ftp.sendcmd('MDTM ' + fn)
+    try:
+        rc, timestamp = response.split(' ', 1)
+    except:
+        timestamp = '0' * 14
+    return timestamp
+
+def touchRemote(ftp, ldir, rdir, fname):
+    ts = getLTime(ldir, fname)
+    ftp.cwd(rdir)
+    ftp.sendcmd('SITE UTIME %s %s %s %s UTC' % (fname, ts, ts, ts))
+
+def touchLocal(ftp, ldir, rdir, fname):
+    ftp.cwd(rdir)
+    ts = getRTime(ftp, fname)
+    sec_utc = time.mktime(time.strptime(ts, '%Y%m%d%H%M%S'))
+    sec = sec_utc-tzdiff
+    os.utime(os.path.join(ldir, fname), (sec, sec))
+
 if sys.platform == 'symbian_s60':
     sys.path.append('E:\\Python')
     cfgpath = 'E:\\Python'
     timefunc = time.localtime
+    touchfunc = touchRemote
 else:
     cfgpath = os.path.split(sys.argv[0])[0]
     timefunc = time.gmtime
+    touchfunc = touchLocal
 
 from ftplib import FTP
 
@@ -24,17 +52,8 @@ def getRList(ftp, rdir):
     ftp.cwd(rdir)
     for fn in ftp.nlst():
         if fn.startswith('.'): continue # skip . and ..
-        response = ftp.sendcmd('MDTM ' + fn)
-        try:
-            rc, timestamp = response.split(' ', 1)
-        except:
-            timestamp = '0' * 14
-        result[fn] = timestamp
+        result[fn] = getRTime(ftp, fn)
     return result
-
-def getTime(d, fn):
-    stat = os.stat(os.path.join(d, fn))
-    return time.strftime('%Y%m%d%H%M%S', timefunc(stat.st_mtime))
 
 def getLList(ldir):
     '''Return a list with contents of the local directory ldir
@@ -43,7 +62,7 @@ def getLList(ldir):
     '''
     result = dict()
     for fname in os.listdir(ldir):
-        result[fname] = getTime(ldir, fname)
+        result[fname] = getLTime(ldir, fname)
     return result
 
 def diffLists(llst, rlst):
@@ -94,10 +113,6 @@ def readConfig():
         result[k.strip()] = v.strip()
     return result
 
-def touchRemote(ftp, rdir, fname, ts):
-    ftp.cwd(rdir)
-    ftp.sendcmd('SITE UTIME %s %s %s %s UTC' % (fname, ts, ts, ts))
-
 def downloadFile(ftp, ldir, rdir, fname):
     buf = list()
     save = lambda line: fd.write('%s\n' % line)
@@ -106,31 +121,31 @@ def downloadFile(ftp, ldir, rdir, fname):
     fd = open(os.path.join(ldir, fname), 'w')
     fd.write('\n'.join(buf))
     fd.close()
-    touchRemote(ftp, rdir, fname, getTime(ldir, fname))
+    touchfunc(ftp, ldir, rdir, fname)
 
 def uploadFile(ftp, ldir, rdir, fname):
     fd = open(os.path.join(ldir, fname), 'r')
     ftp.cwd(rdir)
     ftp.storlines('STOR ' + fname, fd)
     fd.close()
-    touchRemote(ftp, rdir, fname, getTime(ldir, fname))
+    touchRemote(ftp, ldir, rdir, fname)
 
 if __name__ == '__main__':
+    print 'Connecting...'
     cfg = readConfig()
     ftp = FTP(cfg['host'])
     ftp.login(cfg['login'], cfg['password'])
     rdir = cfg['remote']
     rlst = getRList(ftp, rdir)
-    print 'Remote dir:'
-    printList(rlst)
+#     print 'Remote dir:'
+#     printList(rlst)
     ldir = cfg['local']
     llst = getLList(ldir)
-    print 'Local dir:'
-    printList(llst)
+#     print 'Local dir:'
+#     printList(llst)
     dl = diffLists(llst, rlst)
     fnames = dl.keys()
     fnames.sort()
-    print
     print 'Syncing...'
     for fname in fnames:
         try:
